@@ -1,0 +1,40 @@
+# KubeVela Definition Module
+# This file contains metadata about your definition module.
+# See: https://kubevela.io/docs/platform-engineers/definition-module
+#
+# Note: Version is automatically derived from git tags.
+# Use 'git tag v1.0.0' to set the version.
+
+apiVersion: core.oam.dev/v1beta1
+kind: DefinitionModule
+metadata:
+  name: playground
+spec:
+  description: KubeVela definition module
+  maintainers:
+    - name: Your Name
+      email: your.email@example.com
+  # Minimum KubeVela version required (optional)
+  minVelaVersion: v1.11.0
+  # Categories for organization (optional)
+  categories:
+    - custom
+  # Dependencies on other modules (optional)
+  # dependencies:
+  #   - module: github.com/other/module
+  #     version: v1.0.0
+  # Placement constraints for cluster-aware deployment (optional)
+  # Definitions in this module will only be applied to clusters matching these conditions.
+  # See: https://kubevela.io/docs/platform-engineers/definition-placement
+  # placement:
+  #   runOn:
+  #     - key: provider
+  #       operator: Eq
+  #       values: ["aws"]
+  #     - key: environment
+  #       operator: In
+  #       values: ["production", "staging"]
+  #   notRunOn:
+  #     - key: cluster-type
+  #       operator: Eq
+  #       values: ["vcluster"]
