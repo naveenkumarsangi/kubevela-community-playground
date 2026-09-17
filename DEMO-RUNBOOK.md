@@ -1,0 +1,214 @@
+# DefKit community-call demo runbook
+
+The live section is designed for about four minutes. It uses offline generation
+and dry-run, so there is no cluster to prepare or debug during the call.
+
+## Before the call
+
+From the repository root:
+
+```bash
+go mod download
+./scripts/verify-demo.sh
+```
+
+A successful preflight ends with:
+
+```text
+rejected with: zone 'us-east-1' must not match the primary zone
+Demo verification passed.
+```
+
+Run it once the day before and once shortly before the call. Download the
+dependencies in advance and leave the generated directory in place. Increase
+the terminal font size and open this file in a second window.
+
+If the `vela` binary is not on `PATH`, point the scripts and commands at it:
+
+```bash
+export VELA_BIN=/path/to/vela
+```
+
+## Live flow
+
+### 1. Establish the authoring pipeline — 30 seconds
+
+```bash
+rm -rf generated
+go run ./cmd/generate generated
+```
+
+Expected signal: six `.cue` files are written under `generated/component/`.
+
+Say:
+
+> These definitions are authored as normal Go packages. DefKit turns them into
+> standard CUE ComponentDefinitions; nothing special is added to the KubeVela
+> runtime.
+
+Do not open all six files. The audience only needs to see that generation is one
+repeatable step.
+
+### 2. Show a useful collection transformation — 75 seconds
+
+Show the relevant Go builder:
+
+```bash
+bat --line-range 39:80 components/issue7288_file_share.go
+```
+
+Then render the Application:
+
+```bash
+"${VELA_BIN:-vela}" dry-run --offline \
+  -d generated/component \
+  -f examples/file-share.yaml
+```
+
+Point to this part of the resource:
+
+```yaml
+spec:
+  mountPoints:
+  - name: cache
+    path: /cache
+    permissions: "0755"
+  - name: reports
+    path: /reports
+    permissions: "0750"
+```
+
+Say:
+
+> Configuration is easier to maintain as a name-keyed map, while the target API
+> expects a list. The builder keeps both the key and value, and the generated
+> resource applies a default only where the input omitted one. This used to need
+> raw CUE or a less natural input shape.
+
+The order of map entries is not part of the contract. Do not describe `cache`
+as always appearing first.
+
+### 3. Show more useful validation feedback — 60 seconds
+
+```bash
+"${VELA_BIN:-vela}" dry-run --offline \
+  -d generated/component \
+  -f examples/zone-replica-invalid.yaml
+```
+
+This intentionally invalid input is rejected. Point to the value-specific message:
+
+```text
+parameter.replicas.1._validateReplicaZone."zone 'us-east-1' must not match the primary zone": conflicting values true and false
+```
+
+Say:
+
+> The generated validator includes the actual zone that violated the rule. A
+> fixed message described the rule; this message tells the user what to fix
+> immediately.
+
+If someone asks where that message comes from:
+
+```bash
+bat --line-range 45:52 generated/component/zone-replica.cue
+```
+
+### 4. Show the multi-resource shape — 75 seconds
+
+```bash
+"${VELA_BIN:-vela}" dry-run --offline \
+  -d generated/component \
+  -f examples/composite-store.yaml
+```
+
+Point out the four rendered resources:
+
+- primary `Store`;
+- named `AccessPolicy`;
+- `accessPoint1`; and
+- `accessPoint2`.
+
+Then show the generated health policy:
+
+```bash
+bat --line-range 13:21 generated/component/composite-store.cue
+```
+
+Say:
+
+> The component owns more than one resource, so health cannot stop at the primary
+> output. The policy checks the store, the named policy output, and every output
+> whose name starts with `accessPoint`. Before the merged scoping and aggregation
+> APIs, resource generation could stay in Go but this health policy still needed
+> raw CUE.
+
+### 5. Hand back — 20 seconds
+
+Say:
+
+> These are three examples from six merged improvements. The others cover nested
+> item paths, an unhealthy result instead of an error when status is absent, and
+> a fluent negative-regex condition. They all use the same generate, vet, and
+> dry-run workflow.
+
+Hand back to the presenter for the contribution summary and close.
+
+## Optional 30-second add-on
+
+If the previous steps finished early, show native negative matching:
+
+```bash
+"${VELA_BIN:-vela}" dry-run --offline \
+  -d generated/component \
+  -f examples/tenant-space.yaml
+
+bat --line-range 24:34 generated/component/tenant-space.cue
+```
+
+The input does not start with `cust-`, so `NotMatches` renders `tier: internal`.
+Keep this optional; it should not push out the multi-resource example.
+
+## Recovery
+
+### Generation fails while downloading modules
+
+The live demo should not be the first module download. Run this before the call:
+
+```bash
+go mod download
+go run ./cmd/generate generated
+```
+
+### `vela` is missing
+
+```bash
+export VELA_BIN=/absolute/path/to/vela
+./scripts/verify-demo.sh
+```
+
+### The invalid example returns a non-zero exit code
+
+That is the intended result. Continue once the error contains:
+
+```text
+zone 'us-east-1' must not match the primary zone
+```
+
+### Generated files are stale
+
+```bash
+rm -rf generated
+go run ./cmd/generate generated
+```
+
+### A live command still fails
+
+Do not spend the remaining presentation debugging. Show these verified signals:
+
+1. `file-share` renders a list with names retained from map keys;
+2. the invalid replica identifies `us-east-1` in its validation message; and
+3. `composite-store` renders one primary and three auxiliary resources.
+
+Then continue with the contribution summary. The focus is the authoring process
+and the merged capabilities, not the terminal session itself.

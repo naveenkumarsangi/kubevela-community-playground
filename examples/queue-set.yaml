@@ -1,0 +1,15 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: queue-set-demo
+spec:
+  components:
+    - name: worker-queues
+      type: queue-set
+      properties:
+        queues:
+          - name: high-priority
+            maxReadOps: 100
+            maxWriteOps: 50
+          - name: standard
+            retentionHours: 48

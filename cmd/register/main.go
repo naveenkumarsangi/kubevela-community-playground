@@ -19,9 +19,8 @@ limitations under the License.
 //
 // Usage: go run ./cmd/register
 //
-// Each definition package (components, traits, policies, workflowsteps)
-// registers its definitions via init() functions that call defkit.Register().
-// Importing those packages triggers registration automatically.
+// The components package registers its definitions through init() calls.
+// Importing it triggers registration automatically.
 package main
 
 import (
@@ -31,10 +30,7 @@ import (
 	"github.com/oam-dev/kubevela/pkg/definition/defkit"
 
 	// Import packages to trigger init() registration
-	_ "github.com/myorg/playground/components"
-	_ "github.com/myorg/playground/policies"
-	_ "github.com/myorg/playground/traits"
-	_ "github.com/myorg/playground/workflowsteps"
+	_ "github.com/naveenkumarsangi/kubevela-community-playground/components"
 )
 
 func main() {

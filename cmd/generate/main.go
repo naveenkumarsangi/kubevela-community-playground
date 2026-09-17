@@ -28,10 +28,7 @@ import (
 	"github.com/oam-dev/kubevela/pkg/definition/defkit"
 
 	// Import packages to trigger init() registration
-	_ "github.com/myorg/playground/components"
-	_ "github.com/myorg/playground/policies"
-	_ "github.com/myorg/playground/traits"
-	_ "github.com/myorg/playground/workflowsteps"
+	_ "github.com/naveenkumarsangi/kubevela-community-playground/components"
 )
 
 var subdirs = map[defkit.DefinitionType]string{
