@@ -24,16 +24,12 @@ func init() {
 	defkit.Register(FileShare())
 }
 
-// FileShare demonstrates structured map values and guarded map-to-list
-// comprehensions (kubevela/kubevela#7287 and #7288).
+// FileShare accepts mount points as a dynamic-key map with typed object values,
+// then renders them as a list for the workload API.
 //
-// OfObject describes each value in a dynamic-key map with typed DefKit fields,
-// so this input no longer needs a raw WithSchema string. The template then needs
-// a positional list that retains each map key. ForEachMapWithGuarded provides
-// both key and value, a list result, and a guard for an unset source.
-//
-// Together the two APIs cover the complete path from a typed map-of-objects
-// parameter to a list-shaped workload field.
+// OfObject defines the value schema. ForEachMapWithGuarded preserves each key
+// and value while building the list and skips the transform when the optional
+// source is absent.
 func FileShare() *defkit.ComponentDefinition {
 	mountPoints := defkit.Map("mountPoints").
 		Optional().
@@ -44,7 +40,7 @@ func FileShare() *defkit.ComponentDefinition {
 		)
 
 	return defkit.NewComponent("file-share").
-		Description("Exposes named mount points using typed structured maps and map-to-list comprehensions (issues #7287 and #7288)").
+		Description("Renders named mount-point configuration as a workload list").
 		Workload("example.com/v1alpha1", "FileShare").
 		Params(mountPoints).
 		Template(func(tpl *defkit.Template) {

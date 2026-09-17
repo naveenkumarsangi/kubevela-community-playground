@@ -24,25 +24,11 @@ func init() {
 	defkit.Register(ZoneReplica())
 }
 
-// ZoneReplica demonstrates expression-based validator messages
-// (kubevela/kubevela#7289).
+// ZoneReplica validates a list of replica placements. ValidateValue builds a
+// message from the local zone field so a rejected configuration identifies the
+// exact value that conflicts with the primary zone.
 //
-// Validate takes a Go string, and the generator writes that same quoted string
-// as the field label in both branches, so a message can describe the rule but
-// never the value that broke it. You get "replica zones must not match the
-// primary zone" where you wanted the offending zone named.
-//
-// ValidateValue takes a Value instead. The generator binds it to a
-// `let _message` and uses `(_message)` as the computed key in both the true and
-// the false branch -- going through the binding is what guarantees the two
-// labels unify into one field rather than becoming two.
-//
-// Fixed messages stay the default and are the right choice for simple rules;
-// dynamic ones earn their keep when a list has several similar entries.
-//
-// Known limit, split out of the issue on purpose: ArrayParam.Validators emits
-// `[...{...}]`, so there is no iterator in scope and the message cannot name the
-// array index. It can name the field value, which is what this example does.
+// A fixed message remains appropriate for the separate empty-zone rule.
 func ZoneReplica() *defkit.ComponentDefinition {
 	primaryZone := defkit.String("primaryZone").Description("Zone that serves writes")
 
@@ -69,7 +55,7 @@ func ZoneReplica() *defkit.ComponentDefinition {
 		)
 
 	return defkit.NewComponent("zone-replica").
-		Description("Places read replicas across zones; demonstrates expression-based validator messages (issue #7289)").
+		Description("Places read replicas across zones with value-specific validation").
 		Workload("example.com/v1alpha1", "ReplicaSet").
 		Params(primaryZone, replicas).
 		Template(func(tpl *defkit.Template) {

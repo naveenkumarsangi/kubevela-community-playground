@@ -1,168 +1,164 @@
-# DefKit: from component work to upstream improvements
+# KubeVela DefKit Enhancement Playground
 
-This repository supports a KubeVela community-call demo. It contains small,
-runnable examples of DefKit capabilities added while we were building new OAM
-components and migrating selected hand-written CUE definitions to Go.
+Explore eight DefKit capabilities added to KubeVela through runnable
+component-authoring examples. No cluster is required.
 
-We began with a practical goal: use DefKit for real component delivery. As we
-applied it to more component shapes, we identified opportunities to broaden the
-typed authoring experience. We reduced those cases to focused examples and
-worked with the community on reusable upstream enhancements.
+With these examples, you can:
 
-## Why we chose DefKit
+- read Go-authored `ComponentDefinition` examples;
+- generate the CUE definitions produced by DefKit;
+- validate the generated CUE;
+- render example Applications with `vela dry-run --offline`; and
+- compare each DefKit API with the resource shape it produces.
 
-DefKit is KubeVela's Go SDK for authoring X-Definitions. The author writes typed,
-fluent Go; DefKit generates the CUE definition that KubeVela already understands.
-It gave us several practical advantages:
-
-- the same Go tooling, review workflow, and IDE support used for controllers;
-- reusable builders instead of repeating large CUE fragments;
-- ordinary Go tests and module versioning around definition authoring;
-- a clearer migration path for teams that maintain Go and CUE together; and
-- standard CUE output, so adopting DefKit does not change the KubeVela runtime.
-
-CUE remains the generated language and KubeVela's evaluation engine. DefKit adds
-a maintainable Go authoring layer while preserving raw CUE as an option for
-specialized cases.
-
-## What the component work helped improve
-
-We used DefKit both to create new OAM components and to migrate existing
-components that had been maintained directly in CUE. That experience highlighted
-three areas where DefKit could support a wider range of component designs:
-
-1. **Authoring expressiveness** — typed builders now cover structured dynamic
-   maps, nested paths, map-to-map and map-to-list transformations, and negative
-   regex conditions.
-2. **Feedback and correctness** — validators can identify the value being
-   rejected, while health logic treats a newly created resource with no status
-   as a normal not-ready state.
-3. **Multi-resource lifecycle** — health builders can describe a primary
-   resource together with named and repeated auxiliary outputs.
-
-We initially opened eleven focused DefKit issues with reproductions and expected
-behaviour. A later migration case added the negative-regex enhancement. Some
-changes were contributed by us; others were implemented by community
-contributors.
-
-## Merged outcomes demonstrated here
-
-As of 17 September 2026, eight of the twelve improvements are merged:
-
-| Area | Issue and merged PR | What changed | Example |
-| --- | --- | --- | --- |
-| Nested structures | [#7282](https://github.com/kubevela/kubevela/issues/7282) / [#7302](https://github.com/kubevela/kubevela/pull/7302) | `ItemBuilder.Set` expands dotted paths into nested fields | `queue-set` |
-| Structured map transforms | [#7283](https://github.com/kubevela/kubevela/issues/7283) / [#7339](https://github.com/kubevela/kubevela/pull/7339) | `ForEachMap.WithBody` renders structured values for each map entry | `route-catalog` |
-| Early reconciliation | [#7284](https://github.com/kubevela/kubevela/issues/7284) / [#7299](https://github.com/kubevela/kubevela/pull/7299) | Missing status evaluates as not healthy instead of producing CUE bottom | `managed-record` |
-| Typed structured maps | [#7287](https://github.com/kubevela/kubevela/issues/7287) / [#7314](https://github.com/kubevela/kubevela/pull/7314) | `Map.OfObject` and `OfSchemaRef` describe structured values under dynamic keys without raw schema strings | `file-share` |
-| Map-to-list transforms | [#7288](https://github.com/kubevela/kubevela/issues/7288) / [#7330](https://github.com/kubevela/kubevela/pull/7330) | Map entries can become list items while retaining both key and value | `file-share` |
-| Actionable validation | [#7289](https://github.com/kubevela/kubevela/issues/7289) / [#7348](https://github.com/kubevela/kubevela/pull/7348) | Validator messages can interpolate the value being rejected | `zone-replica` |
-| Multi-output health | [#7290](https://github.com/kubevela/kubevela/issues/7290) / [#7332](https://github.com/kubevela/kubevela/pull/7332) | Health expressions can target named outputs and aggregate output groups | `composite-store` |
-| Fluent conditions | [#7353](https://github.com/kubevela/kubevela/issues/7353) / [#7352](https://github.com/kubevela/kubevela/pull/7352) | `NotMatches` emits CUE's native negative-regex operator | `tenant-space` |
-
-Seven small components cover the eight merged capabilities. `file-share` combines
-the two complementary collection APIs: a typed map-of-objects parameter and a
-map-to-list workload transform.
-
-The remaining four items are active roadmap work:
-
-| Issue | Capability | Current state |
-| --- | --- | --- |
-| [#7281](https://github.com/kubevela/kubevela/issues/7281) | Structured values in `Lit` | Open; [PR #7313](https://github.com/kubevela/kubevela/pull/7313) is under review |
-| [#7285](https://github.com/kubevela/kubevela/issues/7285) | Computed regex patterns | Open |
-| [#7286](https://github.com/kubevela/kubevela/issues/7286) | Generic CUE standard-library calls | Open |
-| [#7291](https://github.com/kubevela/kubevela/issues/7291) | Generated-CUE validation and evaluation | Open; [PR #7321](https://github.com/kubevela/kubevela/pull/7321) and [PR #7379](https://github.com/kubevela/kubevela/pull/7379) are under review |
-
-## Presentation browser flow
-
-The community-call script does not require slides. It starts in the browser with:
-
-1. the official [DefKit overview](https://kubevela.io/docs/platform-engineers/defkit/overview/);
-2. the [filtered twelve-issue list](https://github.com/kubevela/kubevela/issues?q=is%3Aissue%20author%3Akrishnankm%20Defkit%20in%3Atitle%20sort%3Acreated-asc);
-3. this README's complete merged and active status tables;
-4. [issue #7287](https://github.com/kubevela/kubevela/issues/7287) and merged [PR #7314](https://github.com/kubevela/kubevela/pull/7314); and
-5. [issue #7283](https://github.com/kubevela/kubevela/issues/7283) and merged [PR #7339](https://github.com/kubevela/kubevela/pull/7339).
-
-The presenter then switches once to the terminal demo. See
-[`PRESENTATION.md`](PRESENTATION.md) for the word-for-word script and
-[`PRESENTER-CHEAT-SHEET.md`](PRESENTER-CHEAT-SHEET.md) for the condensed cues.
+The examples use illustrative `example.com/v1alpha1` resources, so you do not
+need Kubernetes, CRDs, or controllers.
 
 ## Quick start
 
-Requirements:
+### Requirements
 
-- Go 1.23.8 or later;
-- a `vela` CLI with `def vet` and offline `dry-run` support; and
-- network access during the first `go mod download`.
+- Go 1.23.8 or newer
+- KubeVela CLI (`vela`) with `def vet` and offline `dry-run` support
+- Git
 
-The Go module pins the KubeVela merge revision that contains all eight merged
-capabilities. No Kubernetes cluster is needed.
+### Clone and verify
 
 ```bash
+git clone https://github.com/naveenkumarsangi/kubevela-community-playground.git
+cd kubevela-community-playground
+
 go mod download
-./scripts/verify-demo.sh
+./scripts/verify.sh
 ```
 
-The verification script:
+A successful run ends with:
 
-1. generates all seven ComponentDefinitions;
-2. compiles every Go package;
-3. validates every generated CUE definition;
-4. dry-runs every valid Application; and
-5. confirms that the intentionally invalid replica example fails with the
-   offending zone in its message.
+```text
+rejected with: zone 'us-east-1' must not match the primary zone
+Playground verification passed.
+```
 
-To run the presentation steps manually:
+This rejection is expected. It confirms that the generated validator reports the
+specific value that violated the rule.
+
+## Try your first example
+
+First, generate all ComponentDefinitions:
 
 ```bash
 go run ./cmd/generate generated
+```
 
+Render the `file-share` example:
+
+```bash
 vela dry-run --offline \
   -d generated/component \
   -f examples/file-share.yaml
-
-vela dry-run --offline \
-  -d generated/component \
-  -f examples/route-catalog.yaml
-
-vela dry-run --offline \
-  -d generated/component \
-  -f examples/zone-replica-invalid.yaml
-
-vela dry-run --offline \
-  -d generated/component \
-  -f examples/composite-store.yaml
 ```
 
-The intentionally invalid replica command is expected to fail. For that part of
-the demo, focus on this output:
+Look for:
+
+```yaml
+spec:
+  mountPoints:
+  - name: cache
+    path: /cache
+    permissions: "0755"
+  - name: reports
+    path: /reports
+    permissions: "0750"
+```
+
+The Application supplies mount points as a map keyed by name. The DefKit template
+converts the map to a list, copies each key into `name`, and adds the default
+permission only when the input omits it.
+
+Next, follow the [getting-started guide](docs/getting-started.md), then use the
+[example catalog](docs/examples.md) to try every capability.
+
+## Included capabilities
+
+| What you can explore | DefKit API or behavior | Example | Related KubeVela issue and pull request |
+| --- | --- | --- | --- |
+| Write nested fields inside generated list items | Dotted paths in `ItemBuilder.Set` | `queue-set` | [#7282](https://github.com/kubevela/kubevela/issues/7282) / [#7302](https://github.com/kubevela/kubevela/pull/7302) |
+| Build structured values for every map entry | `ForEachMap.WithBody` | `route-catalog` | [#7283](https://github.com/kubevela/kubevela/issues/7283) / [#7339](https://github.com/kubevela/kubevela/pull/7339) |
+| Treat an absent resource status as not ready | Status-safe health expressions | `managed-record` | [#7284](https://github.com/kubevela/kubevela/issues/7284) / [#7299](https://github.com/kubevela/kubevela/pull/7299) |
+| Define objects under dynamic map keys with typed fields | `Map.OfObject` and `Map.OfSchemaRef` | `file-share` | [#7287](https://github.com/kubevela/kubevela/issues/7287) / [#7314](https://github.com/kubevela/kubevela/pull/7314) |
+| Turn a map into a list while retaining key and value | `ForEachMapWith` and `ForEachMapWithGuarded` | `file-share` | [#7288](https://github.com/kubevela/kubevela/issues/7288) / [#7330](https://github.com/kubevela/kubevela/pull/7330) |
+| Include the rejected value in a validator message | `ValidateValue` with interpolation | `zone-replica` | [#7289](https://github.com/kubevela/kubevela/issues/7289) / [#7348](https://github.com/kubevela/kubevela/pull/7348) |
+| Check health across primary, named, and grouped outputs | `Health.At` and `Health.Every` | `composite-store` | [#7290](https://github.com/kubevela/kubevela/issues/7290) / [#7332](https://github.com/kubevela/kubevela/pull/7332) |
+| Express negative regex conditions directly | `NotMatches` | `tenant-space` | [#7353](https://github.com/kubevela/kubevela/issues/7353) / [#7352](https://github.com/kubevela/kubevela/pull/7352) |
+
+For each capability, [DefKit enhancements](docs/enhancements.md) explains the
+motivation, API, command, and expected result.
+
+## How the playground works
 
 ```text
-parameter.replicas.1._validateReplicaZone."zone 'us-east-1' must not match the primary zone": conflicting values true and false
+Go ComponentDefinition
+        │
+        │  go run ./cmd/generate
+        ▼
+Generated CUE definition
+        │
+        ├── vela def vet
+        │
+        └── vela dry-run --offline + example Application
+                    │
+                    ▼
+              Rendered resource
 ```
 
-Use [`PRESENTER-CHEAT-SHEET.md`](PRESENTER-CHEAT-SHEET.md) for the recommended
-flow. [`PRESENTATION.md`](PRESENTATION.md) contains the fuller talk track, while
-[`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md) has the exact commands, handoff cues, and
-recovery steps.
+Each example component calls `defkit.Register`. The generator imports the
+component package, reads the resulting registry, and writes one CUE file for each
+definition in `generated/component/`.
+
+The verification script runs this full workflow for every example.
+
+## Documentation
+
+- [Getting started](docs/getting-started.md) — prerequisites, setup, generation,
+  validation, and rendering
+- [Enhancements](docs/enhancements.md) — all eight capabilities with API examples
+  and upstream links
+- [Example catalog](docs/examples.md) — commands and expected output for every
+  example
+- [Troubleshooting](docs/troubleshooting.md) — common setup and rendering issues
+- [Official DefKit overview](https://kubevela.io/docs/platform-engineers/defkit/overview/)
 
 ## Repository layout
 
 ```text
-components/            Go-authored DefKit ComponentDefinitions
-examples/              Applications used by offline dry-run
-cmd/generate/           writes registered definitions as CUE
-cmd/register/           emits the DefKit registry as JSON
-scripts/verify-demo.sh  repeatable pre-call verification
-PRESENTER-CHEAT-SHEET.md condensed run of show and speaker cues
-PRESENTATION.md         timed narrative for the community call
-DEMO-RUNBOOK.md         live commands and expected signals
+components/          Go-authored ComponentDefinitions
+examples/            Applications used for offline rendering
+cmd/generate/        CUE generator for registered definitions
+cmd/register/        JSON registry output
+scripts/verify.sh    end-to-end local verification
+docs/                user guides and reference material
+module.yaml          DefinitionModule metadata
 ```
 
-## Scope of the demo
+## Version note
 
-The examples emit resources under `example.com/v1alpha1`. They intentionally do
-not require CRDs or controllers because the demo is about the definition-authoring
-path: Go source, generated CUE, rendered resources, validation feedback, and
-health-policy structure. A live cluster would add setup and failure modes without
-making those DefKit behaviours clearer.
+The module pins this KubeVela revision:
+
+```text
+v1.11.1-0.20260917092533-97d67561f080
+```
+
+That revision contains all eight demonstrated capabilities. It is a post-merge
+pseudo-version rather than a tagged KubeVela release. For production adoption,
+use the first tagged release that contains the required changes or pin a revision
+you have verified in your own build pipeline.
+
+## Scope
+
+The example resource kinds are illustrative and do not have controllers. Use this
+repository to author, validate, and render them offline; do not apply them to a
+cluster.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).

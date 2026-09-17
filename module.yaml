@@ -3,7 +3,7 @@ kind: DefinitionModule
 metadata:
   name: kubevela-community-playground
 spec:
-  description: Runnable examples for DefKit improvements discovered while authoring and migrating OAM components
+  description: Runnable examples for merged KubeVela DefKit authoring capabilities
   maintainers:
     - name: Naveen Kumar Sangi
     - name: Krishnan K M

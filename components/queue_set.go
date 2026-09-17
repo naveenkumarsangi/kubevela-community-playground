@@ -24,18 +24,11 @@ func init() {
 	defkit.Register(QueueSet())
 }
 
-// QueueSet demonstrates nested field paths inside a per-item ItemBuilder
-// (kubevela/kubevela#7282).
+// QueueSet converts a list of queue settings into nested workload fields.
 //
-// ItemBuilder.Set now expands a dot-separated path into nested CUE structs, the
-// same way Resource.Set does. Before the fix the whole string became one field
-// label, so "throughput.maxReadOps" generated `throughput.maxReadOps: ...`,
-// which CUE rejects with "missing ',' in struct literal" — and only at cue vet
-// time, never during generation.
-//
-// The example exercises the three shapes the issue asked to cover: a plain
-// nested Set, nested Sets inside If/IfSet/IfNotSet, and sibling writes under one
-// parent that have to unify into a single struct.
+// ItemBuilder.Set accepts dotted paths inside a list comprehension. The example
+// uses direct and conditional writes, including sibling fields that share the
+// same throughput parent.
 func QueueSet() *defkit.ComponentDefinition {
 	queues := defkit.List("queues").
 		Description("Queues to provision, one entry per queue").
@@ -47,7 +40,7 @@ func QueueSet() *defkit.ComponentDefinition {
 		)
 
 	return defkit.NewComponent("queue-set").
-		Description("Provisions a set of queues; demonstrates nested paths in ItemBuilder (issue #7282)").
+		Description("Provisions queues with optional throughput and retention settings").
 		Workload("example.com/v1alpha1", "QueueSet").
 		Params(queues).
 		Template(func(tpl *defkit.Template) {

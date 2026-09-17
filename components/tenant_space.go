@@ -24,30 +24,19 @@ func init() {
 	defkit.Register(TenantSpace())
 }
 
-// TenantSpace demonstrates negative regex conditions
-// (kubevela/kubevela#7353).
-//
-// Defkit had typed helpers for positive runtime regex matching but nothing
-// symmetric for the negative case, even though CUE has a native `!~` operator.
-// Callers had to wrap a positive match in Not(...), which is semantically fine
-// but less discoverable and emits `!(x =~ "p")` instead of `x !~ "p"`.
-//
-// NotMatches now exists on both fluent condition builders -- StringParam for
-// runtime parameter conditions, LocalFieldRef for validators -- and reads
-// naturally in the case the issue called out: a validator that should fail when
-// a value does not match an allowed pattern.
+// TenantSpace validates names and selects a tier with direct positive and
+// negative regex conditions. NotMatches emits CUE's native !~ operator for both
+// parameter conditions and local-field validation.
 func TenantSpace() *defkit.ComponentDefinition {
 	tenantName := defkit.String("tenantName").Description("Tenant that owns this space")
 	displayName := defkit.String("displayName").Optional().Description("Human-readable name")
 
 	return defkit.NewComponent("tenant-space").
-		Description("Allocates a namespaced tenant space; demonstrates negative regex conditions (issue #7353)").
+		Description("Allocates a tenant space with regex-based validation and tier selection").
 		Workload("example.com/v1alpha1", "TenantSpace").
 		Params(tenantName, displayName).
 		Validators(
-			// The case from the issue: fail when the value does not match the
-			// allowed pattern. NotMatches states that directly, where the old
-			// form was Not(LocalField("tenantName").Matches(...)).
+			// Reject names outside the supported character set.
 			defkit.Validate("tenantName contains unsupported characters").
 				FailWhen(defkit.LocalField("tenantName").NotMatches(`^[a-z0-9-]+$`)).
 				WithName("_validateTenantName"),

@@ -24,22 +24,9 @@ func init() {
 	defkit.Register(ManagedRecord())
 }
 
-// ManagedRecord demonstrates health conditions that survive an absent status
-// (kubevela/kubevela#7284).
-//
-// A freshly applied resource has no status for the first few reconciles. The
-// condition comprehensions used to be emitted at the top level and dereferenced
-// context.output.status.conditions unconditionally, so CUE propagated bottom
-// through the && chain instead of short-circuiting: the policy errored rather
-// than reporting "not healthy yet", and every reconcile logged a health-check
-// failure for the whole creation window.
-//
-// The same expression now guards its own preamble. Missing status reads as
-// unhealthy, and a condition entry with no type is skipped instead of breaking
-// evaluation. Against the five fixtures from the issue -- {}, {status: {}},
-// both-true, one-false, and a typeless entry alongside healthy ones -- isHealth
-// evaluates to false, false, true, false, true, with no fixture producing
-// bottom.
+// ManagedRecord defines readiness for a resource whose status arrives
+// asynchronously. Missing status or conditions evaluate to not ready, while
+// Ready and Synced must both be true before the component becomes healthy.
 func ManagedRecord() *defkit.ComponentDefinition {
 	recordName := defkit.String("recordName").Description("Name of the record to manage")
 	zone := defkit.String("zone").Description("Zone the record belongs to")
@@ -47,7 +34,7 @@ func ManagedRecord() *defkit.ComponentDefinition {
 	h := defkit.Health()
 
 	return defkit.NewComponent("managed-record").
-		Description("Manages an external record; demonstrates null-safe health conditions (issue #7284)").
+		Description("Manages an external record with status-safe readiness checks").
 		Workload("example.com/v1alpha1", "Record").
 		Params(recordName, zone).
 		HealthPolicyExpr(h.And(

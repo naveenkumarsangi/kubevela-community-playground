@@ -24,24 +24,12 @@ func init() {
 	defkit.Register(CompositeStore())
 }
 
-// CompositeStore demonstrates health expressions scoped to auxiliary outputs and
-// aggregated across a group of them (kubevela/kubevela#7290).
+// CompositeStore emits a primary store, a named access policy, and a group of
+// access-point outputs.
 //
-// Health expressions used to be rooted at context.output with no way to point
-// the same builders at context.outputs.<name>, which left a component that
-// creates several resources together with raw CUE as its only complete option.
-//
-// Two pieces close that:
-//
-//   - At(ref) roots an expression at any context reference. The primary output
-//     stays the default, so existing definitions are unaffected.
-//   - Every(OutputsWithPrefix(p), fn) requires every output whose name starts
-//     with p to satisfy fn. An empty match set reads unhealthy rather than
-//     vacuously true, which matters most before anything has been created.
-//     AllowEmpty() opts into the other behaviour for a genuinely optional group.
-//
-// This component is healthy only when the primary store is ready, the named
-// access policy is ready, and every accessPoint* output is ready.
+// At scopes a health expression to a specific output. Every applies the same
+// expression to all outputs with a shared prefix. The component becomes healthy
+// only when the store, policy, and every requested access point report Ready.
 func CompositeStore() *defkit.ComponentDefinition {
 	storeName := defkit.String("storeName").Description("Name of the store to provision")
 	accessPoints := defkit.Int("accessPoints").
@@ -52,7 +40,7 @@ func CompositeStore() *defkit.ComponentDefinition {
 	vela := defkit.VelaCtx()
 
 	return defkit.NewComponent("composite-store").
-		Description("Provisions a store with auxiliary resources; demonstrates scoped and aggregated health (issue #7290)").
+		Description("Provisions a store and evaluates health across all related resources").
 		Workload("example.com/v1alpha1", "Store").
 		Params(storeName, accessPoints).
 		HealthPolicyExpr(h.And(

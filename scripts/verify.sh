@@ -42,7 +42,7 @@ for application in \
   echo "  rendered: ${application}"
 done
 
-echo "Checking the expected validator failure..."
+echo "Checking the intentional validation rejection..."
 if validation_output=$("${VELA_BIN}" dry-run --offline \
   -d "${GENERATED_DIR}/component" \
   -f examples/zone-replica-invalid.yaml 2>&1); then
@@ -58,4 +58,4 @@ if [[ "${validation_output}" != *"${expected_message}"* ]]; then
 fi
 
 echo "  rejected with: ${expected_message}"
-echo "Demo verification passed."
+echo "Playground verification passed."
