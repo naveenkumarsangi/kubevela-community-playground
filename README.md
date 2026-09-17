@@ -1,152 +1,136 @@
-# Defkit feature examples
+# DefKit: from component work to upstream improvements
 
-Each definition in `components/` demonstrates one defkit feature from a closed
-kubevela issue, and each file here is an Application that exercises it. The file
-name carries the issue number.
+This repository supports a KubeVela community-call demo. It contains small,
+runnable examples of DefKit capabilities added while we were building new OAM
+components and migrating selected hand-written CUE definitions to Go.
 
-## Issue map
+We began with a practical goal: use DefKit for real component delivery. As we
+applied it to more component shapes, we identified opportunities to broaden the
+typed authoring experience. We reduced those cases to focused examples and
+worked with the community on reusable upstream enhancements.
 
-| Issue | Feature | Definition | Example |
+## Why we chose DefKit
+
+DefKit is KubeVela's Go SDK for authoring X-Definitions. The author writes typed,
+fluent Go; DefKit generates the CUE definition that KubeVela already understands.
+It gave us several practical advantages:
+
+- the same Go tooling, review workflow, and IDE support used for controllers;
+- reusable builders instead of repeating large CUE fragments;
+- ordinary Go tests and module versioning around definition authoring;
+- a clearer migration path for teams that maintain Go and CUE together; and
+- standard CUE output, so adopting DefKit does not change the KubeVela runtime.
+
+CUE remains the generated language and KubeVela's evaluation engine. DefKit adds
+a maintainable Go authoring layer while preserving raw CUE as an option for
+specialized cases.
+
+## What the component work helped improve
+
+We used DefKit both to create new OAM components and to migrate existing
+components that had been maintained directly in CUE. That experience highlighted
+three areas where DefKit could support a wider range of component designs:
+
+1. **Authoring expressiveness** — typed builders now cover more nested paths,
+   map-to-list transformations, and negative regex conditions.
+2. **Feedback and correctness** — validators can identify the value being
+   rejected, while health logic treats a newly created resource with no status
+   as a normal not-ready state.
+3. **Multi-resource lifecycle** — health builders can describe a primary
+   resource together with named and repeated auxiliary outputs.
+
+We initially opened eleven focused DefKit issues with reproductions and expected
+behaviour. A later migration case added the negative-regex enhancement. Some
+changes were contributed by us; others were implemented by community
+contributors.
+
+## Merged outcomes demonstrated here
+
+As of 17 September 2026, these six improvements are merged:
+
+| Area | Issue and merged PR | What changed | Example |
 | --- | --- | --- | --- |
-| [#7282](https://github.com/kubevela/kubevela/issues/7282) | Nested field paths in `ItemBuilder` | `components/issue7282_queue_set.go` | `queue-set.yaml` |
-| [#7284](https://github.com/kubevela/kubevela/issues/7284) | Health conditions that survive an absent status | `components/issue7284_managed_record.go` | `managed-record.yaml` |
-| [#7288](https://github.com/kubevela/kubevela/issues/7288) | Guarded map-to-list comprehensions | `components/issue7288_file_share.go` | `file-share.yaml` |
-| [#7289](https://github.com/kubevela/kubevela/issues/7289) | Expression-based validator messages | `components/issue7289_zone_replica.go` | `zone-replica.yaml` |
-| [#7290](https://github.com/kubevela/kubevela/issues/7290) | Health expressions scoped to auxiliary outputs | `components/issue7290_composite_store.go` | `composite-store.yaml` |
-| [#7353](https://github.com/kubevela/kubevela/issues/7353) | Negative regex conditions (`NotMatches`) | `components/issue7353_tenant_space.go` | `tenant-space.yaml` |
+| Nested structures | [#7282](https://github.com/kubevela/kubevela/issues/7282) / [#7302](https://github.com/kubevela/kubevela/pull/7302) | `ItemBuilder.Set` expands dotted paths instead of emitting an invalid field label | `queue-set` |
+| Early reconciliation | [#7284](https://github.com/kubevela/kubevela/issues/7284) / [#7299](https://github.com/kubevela/kubevela/pull/7299) | Missing status evaluates as not healthy instead of producing CUE bottom | `managed-record` |
+| Collection transforms | [#7288](https://github.com/kubevela/kubevela/issues/7288) / [#7330](https://github.com/kubevela/kubevela/pull/7330) | Map entries can become list items while retaining both key and value | `file-share` |
+| Actionable validation | [#7289](https://github.com/kubevela/kubevela/issues/7289) / [#7348](https://github.com/kubevela/kubevela/pull/7348) | Validator messages can interpolate the value that failed | `zone-replica` |
+| Multi-output health | [#7290](https://github.com/kubevela/kubevela/issues/7290) / [#7332](https://github.com/kubevela/kubevela/pull/7332) | Health expressions can target named outputs and aggregate output groups | `composite-store` |
+| Fluent conditions | [#7353](https://github.com/kubevela/kubevela/issues/7353) / [#7352](https://github.com/kubevela/kubevela/pull/7352) | `NotMatches` emits CUE's native negative-regex operator | `tenant-space` |
 
-## What each example shows
+The repository keeps one deliberately small component per capability. They are
+neutral examples rather than copies of production definitions, so the generated
+CUE and dry-run output remain concise enough for a short demo.
 
-### #7282 -- nested paths in `ItemBuilder` (`queue-set`)
+## Quick start
 
-`Resource.Set` took a nested path; `ItemBuilder.Set` treated the whole string as
-one label, so `item.Set("throughput.maxReadOps", ...)` generated
-`throughput.maxReadOps: ...` and `ToCue()` returned it without complaint. You
-found out later, from `cue vet`, with `missing ',' in struct literal`.
+Requirements:
 
-`ItemBuilder.Set` now expands the path. The example covers a plain nested Set,
-nested Sets inside `IfSet`/`IfNotSet`, and sibling writes under one parent
-unifying into a single struct:
+- Go 1.23.8 or later;
+- a `vela` CLI with `def vet` and offline `dry-run` support; and
+- network access during the first `go mod download`.
 
-```cue
-if v.maxReadOps != _|_ {
-    spec: throughput: maxReadOps: v.maxReadOps
-}
-if v.maxWriteOps != _|_ {
-    spec: throughput: maxWriteOps: v.maxWriteOps
-}
-```
-
-### #7284 -- null-safe health conditions (`managed-record`)
-
-A freshly applied resource has no status for the first few reconciles. The
-condition comprehensions were emitted at the top level and dereferenced
-`context.output.status.conditions` unconditionally, so CUE propagated bottom
-through the `&&` chain instead of short-circuiting: the policy errored rather
-than reporting "not healthy yet", and every reconcile logged a health-check
-failure for the whole creation window.
-
-The generated comprehensions now default a missing source and skip entries with
-no `type`:
-
-```cue
-_readyCond: [ for c in *context.output.status.conditions | [] if c.type != _|_ if c.type == "Ready" { c } ]
-```
-
-Evaluated against the five fixtures from the issue -- `{}`, `{status: {}}`,
-both-true, one-false, and a typeless entry alongside healthy ones -- `isHealth`
-is `false, false, true, false, true`. No fixture produces bottom.
-
-### #7288 -- map-to-list comprehensions (`file-share`)
-
-Array-to-array worked and map-to-map worked; map-to-list with the key still in
-scope did not. `ForEachWithVar` binds one iteration variable, so it can reach the
-value but never the key, and `ForEachMap` has both variables but always emits a
-struct.
-
-`ForEachMapWithGuarded` gives both variables, a list result, and a guard for an
-unset source. `ForEachMap` is unchanged.
-
-```cue
-mountPoints: [
-    if parameter["mountPoints"] != _|_ for k, v in parameter.mountPoints {
-        name: k
-        path: v.path
-        ...
-    },
-]
-```
-
-### #7289 -- expression-based validator messages (`zone-replica`)
-
-`Validate` takes a Go string and the generator writes that same quoted string as
-the field label in both branches, so a message can describe the rule but not the
-value that broke it.
-
-`ValidateValue` takes a `Value`. The generator binds it to a `let _message` and
-uses `(_message)` as the computed key in both branches -- going through the
-binding is what guarantees the two labels unify into one field rather than
-becoming two:
-
-```cue
-_validateReplicaZone: {
-    let _message = "zone '\(zone)' must not match the primary zone"
-    (_message): true
-    if zone == parameter.primaryZone {
-        (_message): false
-    }
-}
-```
-
-Fixed messages stay the default; the example keeps one of each for contrast.
-
-Still open, and split out of the issue deliberately: `ArrayParam.Validators`
-emits `[...{...}]`, so no iterator is in scope and the message cannot name the
-array index. It can name the field value.
-
-### #7290 -- scoped and aggregated health (`composite-store`)
-
-Health expressions were rooted at `context.output` with no way to point the same
-builders at `context.outputs.<name>`, which left a component that creates several
-resources together with raw CUE as its only complete option.
-
-`At(ref)` roots an expression at any context reference, with the primary output
-still the default. `Every(OutputsWithPrefix(p), fn)` requires every output whose
-name starts with `p` to satisfy `fn`, and an empty match set reads unhealthy
-rather than vacuously true -- `AllowEmpty()` opts into the other behaviour for a
-genuinely optional group. That covers the three cases the issue named: a missing
-target, absent `status.conditions`, and an empty collection all read unhealthy.
-
-```cue
-_accessPointItems: [ for k, v in (*context.outputs | {}) if k =~ "^accessPoint" { v } ]
-```
-
-### #7353 -- negative regex conditions (`tenant-space`)
-
-Defkit had typed helpers for positive regex matching but nothing symmetric for
-the negative case, even though CUE has a native `!~`. Callers wrapped a positive
-match in `Not(...)`, which is valid but less discoverable and emits
-`!(x =~ "p")`.
-
-`NotMatches` now exists on `StringParam` (runtime conditions) and
-`LocalFieldRef` (validators), and emits `!~` directly:
-
-```cue
-if parameter.tenantName !~ "^cust-" {
-    tier: "internal"
-}
-```
-
-## Seeing the generated CUE
-
-This needs no cluster:
+The Go module pins a post-merge KubeVela revision that contains all six APIs.
+No Kubernetes cluster is needed.
 
 ```bash
-go run ./cmd/generate generated                     # CUE for every definition
-vela def vet generated/component/queue-set.cue      # validates offline
+go mod download
+./scripts/verify-demo.sh
 ```
 
-All six definitions pass `vela def vet`. With no cluster reachable it logs an
-error about loading external cuex packages first and then reports
-`Validation ... succeed.` -- the validation itself does not need the cluster.
+The verification script:
 
+1. generates all six ComponentDefinitions;
+2. compiles every Go package;
+3. validates every generated CUE definition;
+4. dry-runs every valid Application; and
+5. confirms that the intentionally invalid replica example fails with the
+   offending zone in its message.
+
+To run the presentation steps manually:
+
+```bash
+go run ./cmd/generate generated
+
+vela dry-run --offline \
+  -d generated/component \
+  -f examples/file-share.yaml
+
+vela dry-run --offline \
+  -d generated/component \
+  -f examples/zone-replica-invalid.yaml
+
+vela dry-run --offline \
+  -d generated/component \
+  -f examples/composite-store.yaml
+```
+
+The second command is expected to fail. For this part of the demo, focus on this
+output:
+
+```text
+parameter.replicas.1._validateReplicaZone."zone 'us-east-1' must not match the primary zone": conflicting values true and false
+```
+
+See [`PRESENTATION.md`](PRESENTATION.md) for the talk track and
+[`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md) for the exact live sequence, handoff cues,
+and recovery commands.
+
+## Repository layout
+
+```text
+components/            Go-authored DefKit ComponentDefinitions
+examples/              Applications used by offline dry-run
+cmd/generate/           writes registered definitions as CUE
+cmd/register/           emits the DefKit registry as JSON
+scripts/verify-demo.sh  repeatable pre-call verification
+PRESENTATION.md         timed narrative for the community call
+DEMO-RUNBOOK.md         live commands and expected signals
+```
+
+## Scope of the demo
+
+The examples emit resources under `example.com/v1alpha1`. They intentionally do
+not require CRDs or controllers because the demo is about the definition-authoring
+path: Go source, generated CUE, rendered resources, validation feedback, and
+health-policy structure. A live cluster would add setup and failure modes without
+making those DefKit behaviours clearer.

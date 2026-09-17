@@ -1,4 +1,4 @@
-module github.com/myorg/playground
+module github.com/naveenkumarsangi/kubevela-community-playground
 
 go 1.23.8
 

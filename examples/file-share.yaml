@@ -1,0 +1,15 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: file-share-demo
+spec:
+  components:
+    - name: team-share
+      type: file-share
+      properties:
+        mountPoints:
+          cache:
+            path: /cache
+          reports:
+            path: /reports
+            permissions: "0750"

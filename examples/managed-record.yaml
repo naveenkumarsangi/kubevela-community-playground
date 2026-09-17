@@ -1,0 +1,11 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: managed-record-demo
+spec:
+  components:
+    - name: api-record
+      type: managed-record
+      properties:
+        recordName: api.example.test
+        zone: example.test

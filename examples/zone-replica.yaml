@@ -1,0 +1,15 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: zone-replica-demo
+spec:
+  components:
+    - name: customer-database
+      type: zone-replica
+      properties:
+        primaryZone: us-east-1
+        replicas:
+          - zone: us-west-2
+            readUnits: 10
+          - zone: eu-west-1
+            readUnits: 10
