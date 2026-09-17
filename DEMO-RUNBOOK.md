@@ -1,7 +1,8 @@
 # DefKit community-call demo runbook
 
-The live section is designed for about five minutes. It uses offline generation
-and dry-run, so there is no cluster to prepare or debug during the call.
+The full presentation uses a three-minute browser walkthrough followed by about
+five minutes in the terminal. The terminal section uses offline generation and
+dry-run, so there is no cluster to prepare or debug during the call.
 
 ## Before the call
 
@@ -29,7 +30,22 @@ If the `vela` binary is not on `PATH`, point the scripts and commands at it:
 export VELA_BIN=/path/to/vela
 ```
 
-## Live flow
+## Browser lead-in
+
+Follow the seven tabs in `PRESENTATION.md`: official DefKit overview, the
+filtered twelve-issue list, the playground README status tables, issue #7287
+with merged PR #7314, and issue #7283 with merged PR #7339. Spend about three
+minutes in the browser.
+
+After PR #7339, say:
+
+> Those are two recent examples from eight merged improvements. Rather than
+> opening every pull request, I'll switch to the terminal now and show how these
+> capabilities fit into a normal DefKit authoring and rendering flow.
+
+Switch once to the Demo terminal. Do not return to the browser during the demo.
+
+## Terminal flow
 
 ### 1. Establish the authoring pipeline — 30 seconds
 
@@ -136,19 +152,20 @@ Point out the four rendered resources:
 - `accessPoint1`; and
 - `accessPoint2`.
 
-Then show the generated health policy:
+Then show the readable Go health policy:
 
 ```bash
-bat --line-range 13:21 generated/component/composite-store.cue
+bat --paging=never \
+  --line-range 51:68 \
+  components/issue7290_composite_store.go
 ```
 
 Say:
 
-> The component owns more than one resource, so health cannot stop at the primary
-> output. The policy checks the store, the named policy output, and every output
-> whose name starts with `accessPoint`. Before the merged scoping and aggregation
-> APIs, resource generation could stay in Go but this health policy still needed
-> raw CUE.
+> The typed policy checks the primary store, the separately named access policy,
+> and every output whose name starts with `accessPoint`. DefKit is generating all
+> four resources and describing the lifecycle of the complete component in the
+> same Go authoring model.
 
 ### 5. Hand back — 20 seconds
 

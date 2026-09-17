@@ -1,213 +1,299 @@
-# Community-call talk track: DefKit lessons from real component work
+# Community-call script: DefKit lessons from real component work
 
-Target length: 9–10 minutes, including the demo.
+Target: 8–9 minutes. No slides. The presentation moves from the official DefKit
+documentation, to the upstream issues and merged pull requests, and then to the
+terminal demo.
 
-Roles below use **Presenter** for the narrative and **Demo partner** for the
-terminal. If one person presents, keep the same order and ignore the handoff.
+## Pages to open before the call
 
-## The message to leave with the audience
+Open these browser tabs in this exact order:
 
-We adopted DefKit to make OAM component authoring easier to maintain in Go. It
-worked for both new components and migrations from hand-written CUE. Real
-definitions highlighted opportunities to expand the typed builders; we turned
-those cases into reproducible upstream proposals, contributed several changes,
-and collaborated with other contributors on the rest. Eight of the twelve
-improvements are now merged.
+1. [DefKit overview](https://kubevela.io/docs/platform-engineers/defkit/overview/)
+2. [DefKit issues authored by `krishnankm`](https://github.com/kubevela/kubevela/issues?q=is%3Aissue%20author%3Akrishnankm%20Defkit%20in%3Atitle%20sort%3Acreated-asc)
+3. [Playground status table](https://github.com/naveenkumarsangi/kubevela-community-playground/tree/demo-2026-09-17)
+4. [Issue #7287: structured map values](https://github.com/kubevela/kubevela/issues/7287)
+5. [PR #7314: `OfObject` and `OfSchemaRef`](https://github.com/kubevela/kubevela/pull/7314)
+6. [Issue #7283: `ForEachMap.WithBody`](https://github.com/kubevela/kubevela/issues/7283)
+7. [PR #7339: render `ForEachMap` body operations](https://github.com/kubevela/kubevela/pull/7339)
 
-## 0:00–0:45 — Start with the goal, not the issue list
+Keep the Demo terminal open separately. Share the browser first, then switch once
+to the terminal. Do not move repeatedly between browser and terminal.
 
-**Presenter**
+## 0:00–0:55 — Explain DefKit from the official documentation
 
-> Our work started with a practical goal: build new OAM components and move a few
-> existing components from hand-written CUE to DefKit. We wanted the definition
-> codebase to feel like the rest of our Go platform code—easy to navigate, review,
-> test, and evolve.
+**Screen:** DefKit overview. Keep the page near the title, then scroll to
+**Benefits**.
+
+**Say:**
+
+> I'll start with the tool behind these examples. DefKit is KubeVela's Go SDK
+> for authoring X-Definitions. With it, we build the component schema, resource
+> template, validation, and health policy in Go, and DefKit generates the CUE
+> that KubeVela already understands.
 >
-> As we moved through that work, we found patterns worth making reusable in
-> DefKit. We reduced each one to a focused example, discussed it with the
-> maintainers, and contributed the resulting enhancements upstream.
+> The benefits that mattered for this work are the ones you can see here: normal
+> Go tooling, IDE support, unit testing, package-based distribution, and
+> compatibility with the existing CUE runtime. CUE is still the runtime contract;
+> DefKit gives us a maintainable authoring layer in Go.
 
-## 0:45–1:50 — Briefly explain DefKit and why it fit
+Do not read every benefit from the page. Point to the list and name only the
+benefits relevant to the component work.
 
-**Presenter**
+## 0:55–1:30 — Show the real contribution set
 
-> DefKit is KubeVela's Go SDK for authoring X-Definitions. We write the schema,
-> resource template, validation, and health policy with fluent Go builders, and
-> DefKit generates the CUE that KubeVela already evaluates.
+**Screen:** filtered GitHub issue list.
+
+**Say:**
+
+> We used DefKit in two ways: we created new OAM components, and we moved selected
+> existing definitions from hand-written CUE to Go. As we tried it across more
+> component shapes, a few patterns kept coming up that were useful beyond any one
+> component.
 >
-> In practice, that gave us familiar IDE support, reusable builders, normal Go
-> tests and module versioning, and less context switching for engineers already
-> working in Go. It also let us introduce new OAM components and migrate existing
-> ones incrementally.
+> We captured those cases as focused upstream issues. You're looking at the full
+> issue set here, including both open and closed items. There are twelve in total:
+> eight are now merged, and four remain open or under review. They group into
+> three broad areas—typed authoring patterns, validation and health behaviour, and
+> multi-resource lifecycle support.
+
+On the issue list, point out that both open and closed items are present. Do not
+read twelve titles or open every issue.
+
+## 1:30–2:00 — Acknowledge the complete merged set
+
+**Screen:** playground README, at **Merged outcomes demonstrated here**.
+
+**Say:**
+
+> Before I open individual examples, this table shows the complete status. On
+> the authoring side, the merged work covers nested paths, structured map schemas
+> and bodies, map-to-list transforms, and negative-regex conditions. On the
+> feedback and lifecycle side, it adds health before status exists,
+> value-specific validation, and multi-output health.
 >
-> CUE remains the generated contract and KubeVela's runtime engine. DefKit gives
-> us a typed Go authoring layer while preserving raw CUE as an option for
-> specialized cases.
+> We are not going to open eight pull requests in a short demo. I'll focus on two
+> of the most recent merges, and the terminal flow will exercise five
+> representative capabilities. The repository has runnable examples for all
+> eight, and the four active items are listed directly below this table.
 
-## 1:50–3:00 — Explain how component work shaped the enhancements
+Point to the eight-row merged table and the four-item active-work table. Do not
+read each row aloud.
 
-**Presenter**
+## 2:00–2:35 — Show newly merged structured-map support
 
-> As we applied DefKit to more demanding components, several reusable extension
-> opportunities became clear.
+**Screen:** issue #7287, followed by PR #7314.
+
+**Say on the issue:**
+
+> One pattern we kept running into was a dynamic-key map where each value is an
+> object. We could already describe a simple map, but a structured value schema
+> still required a raw CUE schema string. Issue #7287 captured that shape so it
+> could be supported as a reusable pattern.
+
+**Switch to PR #7314 and say:**
+
+> Over in PR #7314, you can see that the change is now merged. It adds typed
+> `OfObject` and `OfSchemaRef` builders, which means the complete map value
+> schema—including required, optional, and defaulted fields—can stay in Go. A
+> community contributor implemented the change, and we verified it against the
+> component shape that originally motivated the issue.
+
+Point to the green **Merged** state and the API example. Do not inspect the file
+diff during the call.
+
+## 2:35–3:05 — Show newly merged map-body generation
+
+**Screen:** issue #7283, followed by PR #7339.
+
+**Say on the issue:**
+
+> The second map pattern used `ForEachMap.WithBody` to build a structured object
+> for each input entry. The authoring API was already there, but those body
+> operations were not appearing in the generated output. Issue #7283 isolated
+> that specific behaviour.
+
+**Switch to PR #7339 and say:**
+
+> PR #7339 is merged as well. The generator now renders the body under each
+> original map key and collects any imports required by the body values. We
+> contributed this fix and verified it with both compiled and evaluated CUE.
+
+Again, point to **Merged** and the before-and-after generated shape. Do not read
+the full PR description.
+
+## 3:05–3:15 — Move once to the terminal
+
+**Say:**
+
+> Those are two recent examples from the eight merged improvements. Rather than
+> opening every pull request, I'll switch to the terminal now and show how these
+> capabilities fit into a normal DefKit authoring and rendering flow.
+
+Switch to the Demo terminal. Do not return to the browser unless answering a
+question after the demo.
+
+## 3:15–3:40 — Generate the definitions
+
+**Run:**
+
+```bash
+rm -rf generated
+go run ./cmd/generate generated
+```
+
+**Say:**
+
+> In this repository, seven small Go-authored ComponentDefinitions cover the
+> eight merged capabilities. When I run the generator, the output is a set of
+> standard CUE definitions, so the KubeVela runtime does not need a separate
+> DefKit execution path.
+
+## 3:40–4:55 — Demonstrate typed collection authoring
+
+**Show the Go source:**
+
+```bash
+bat --paging=never \
+  --line-range 37:75 \
+  components/issues7287_7288_file_share.go
+```
+
+**Say:**
+
+> Looking at the source, `OfObject` defines the object that sits under each
+> dynamic map key. The workload expects a list, so `ForEachMapWithGuarded` carries
+> both the key and the value forward while it builds each list item. Together,
+> those two APIs cover the full path from a typed map-of-objects input to a
+> list-shaped workload field.
+
+**Render it:**
+
+```bash
+vela dry-run --offline \
+  -d generated/component \
+  -f examples/file-share.yaml
+```
+
+**Point to `spec.mountPoints` and say:**
+
+> In the rendered `spec.mountPoints`, the original map keys have become the
+> `cache` and `reports` item names. The first entry also picked up the default
+> permission because the Application did not provide one.
+
+**Render the `WithBody` example:**
+
+```bash
+vela dry-run --offline \
+  -d generated/component \
+  -f examples/route-catalog.yaml
+```
+
+**Say:**
+
+> In this example, the result stays map-shaped, but each scalar backend becomes a
+> structured object under its original route key. That's the merged `WithBody`
+> behaviour we just looked at in the pull request.
+
+## 4:55–5:35 — Demonstrate value-specific validation
+
+**Run:**
+
+```bash
+vela dry-run --offline \
+  -d generated/component \
+  -f examples/zone-replica-invalid.yaml
+```
+
+**Say:**
+
+> We expect this one to be rejected because a replica is using the primary zone.
+> The useful part is that the generated message includes `us-east-1`, the exact
+> value that needs to be corrected. The user can go straight to that entry
+> instead of searching the list for the one that broke the rule.
+
+Point only to `zone 'us-east-1' must not match the primary zone`. Do not explain
+CUE's `conflicting values` suffix.
+
+## 5:35–6:55 — Demonstrate multi-resource health
+
+**Run:**
+
+```bash
+vela dry-run --offline \
+  -d generated/component \
+  -f examples/composite-store.yaml
+```
+
+**Point out:**
+
+- primary `Store/orders`;
+- named `AccessPolicy/orders-policy`;
+- repeated `AccessPoint/orders-ap-1`; and
+- repeated `AccessPoint/orders-ap-2`.
+
+**Show the readable Go health policy:**
+
+```bash
+bat --paging=never \
+  --line-range 51:68 \
+  components/issue7290_composite_store.go
+```
+
+**Say:**
+
+> For a multi-resource component, generating the resources is only half the job;
+> the health policy has to cover all of them as well. In this typed policy, we
+> check the primary output, the separately named access policy, and every output
+> whose name has the `accessPoint` prefix.
 >
-> One was broader authoring expressiveness: structured values under dynamic map
-> keys, transformations that retain both map keys and values, nested writes
-> inside generated items, and direct negative regex conditions.
+> So DefKit generates all four resources, and the same Go authoring model also
+> describes the lifecycle of the complete component.
+
+## 6:55–7:50 — Summarize the result
+
+**Keep the terminal visible. Say:**
+
+> In that live flow, we used five of the eight merged capabilities: typed
+> structured maps, map-to-list transformation, structured `ForEachMap` bodies,
+> value-specific validation, and multi-output health.
 >
-> Another was richer feedback and lifecycle behaviour: validation messages could
-> identify the exact value being rejected, and a resource with no status yet
-> could be treated as normally not ready while it starts reconciling.
+> The repository has runnable examples for the other areas too, including nested
+> item paths, health evaluation before status exists, and native negative-regex
+> conditions. Of the twelve original items, four remain active: structured
+> literals, computed regex patterns, generic standard-library calls, and
+> generated-CUE validation helpers.
 >
-> Multi-resource health was a third opportunity. A component can emit a primary
-> resource, a named policy resource, and a collection of auxiliary resources.
-> Extending the health builders to those outputs lets the complete policy stay in
-> the same typed Go authoring model.
->
-> We turned these opportunities into focused examples and initially opened eleven
-> upstream issues. A later migration case added one more focused enhancement for
-> negative regex matching.
+> We were able to use DefKit for both new OAM components and migrations from
+> hand-written CUE. Along the way, that component work also produced reusable
+> improvements for the wider KubeVela community.
 
-## 3:00–3:40 — Summarize the result without reading issue numbers
+## 7:50–8:10 — Close
 
-**Presenter**
+**Say:**
 
-> Eight improvements from that effort are now merged. They make structured and
-> collection-heavy templates easier to express, make validation feedback more
-> specific, and let health policies describe the whole component rather than only
-> its primary resource.
->
-> Some fixes came from us and some were implemented by other KubeVela
-> contributors. We also verified the changes against the component shapes that
-> exposed them. That's the part of the community process we wanted to share: real
-> use, a small reproducer, design review, implementation, and verification.
+> Thank you to everyone who reviewed, implemented, and verified these changes.
+> The playground repository has all of the examples and the complete issue
+> status, and we're happy to dig into any of the individual designs.
 
-**Handoff**
+Stop. Leave the remaining time for questions.
 
-> Instead of walking through eight pull requests, we'll show one authoring flow
-> and three outcomes that users can see directly.
+## Likely questions
 
-## 3:40–7:40 — Demo
+**Why not demonstrate every merged issue?**
+Walking through eight separate examples would make the overall workflow harder
+to see. The live demo focuses on five representative capabilities, and the
+repository has runnable examples for all eight.
 
-Follow [`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md).
+**Does DefKit replace CUE?**
+No. CUE remains the runtime contract. DefKit is the Go authoring layer, and it
+generates CUE for the existing KubeVela runtime.
 
-### Demo beat 1: typed collection authoring from schema to output
+**Why is the demo offline?**
+The contribution surface here is definition authoring, CUE generation,
+validation, and rendering. An offline dry-run exercises all of those boundaries
+without bringing unrelated CRD or controller setup into the demo.
 
-**Demo partner**
-
-Generate the definitions.
-
-> These seven definitions cover eight merged capabilities. Generating them
-> produces standard CUE ComponentDefinitions. There is no special runtime and no
-> cluster dependency in this demo.
-
-Show `components/issues7287_7288_file_share.go`, then dry-run `file-share.yaml`.
-
-> The input is a dynamic-key map whose values have a typed object schema. The
-> merged `OfObject` API describes that shape without a raw schema string. The
-> target workload expects a list, so the map-to-list builder then retains both
-> the key and value, producing named entries and applying a default permission.
-> This is the complete path from typed input schema to rendered workload output.
-
-Dry-run `route-catalog.yaml`.
-
-> This second transform stays map-shaped but builds a structured value under
-> every original key. `ForEachMap.WithBody` already exposed that authoring API;
-> the merged generator support now renders and evaluates the body operations.
-> Together, these examples show that DefKit can model both common directions of
-> structured map transformation.
-
-### Demo beat 2: validation identifies the actual bad value
-
-Run the intentionally invalid zone-replica Application.
-
-> The second replica uses the primary zone. The command is expected to fail, but
-> notice the message: it includes `us-east-1`, the value that violated the rule.
-> With only a fixed string, users knew the rule, but they still had to search the
-> input for the offending item. An expression-based message points to the bad
-> value right in the validation error.
-
-### Demo beat 3: one component can own several resources
-
-Dry-run `composite-store.yaml`, then show the health-policy excerpt in the
-generated definition.
-
-> The component renders a primary store, a named access policy, and two access
-> points. Its health policy uses the same typed builder for the primary output, a
-> named output, and every output with the `accessPoint` prefix.
->
-> This mattered for migrations. Multi-resource definitions were one of the places
-> where we could generate the resources in Go but still had to drop into raw CUE
-> to describe health. The merged scoping and aggregation APIs close that gap.
-
-Optional, if there is time:
-
-> The repository also contains the other merged cases: nested item paths,
-> null-safe health before status exists, and a fluent `NotMatches` condition.
-> They all run through the same generate, vet, and dry-run workflow.
-
-## 7:40–8:45 — Connect the demo back to the effort
-
-**Presenter**
-
-> The examples are intentionally small, but they came from larger component
-> work. We used DefKit to build new OAM components and migrate selected CUE
-> components to the Go authoring model. Each case we moved from raw CUE into typed
-> builders made the definition easier for a Go-focused team to review and change.
->
-> We kept each enhancement focused. We reproduced the concrete component shape,
-> discussed the smallest reusable API, and tested the generated CUE—not just the
-> Go string returned by the builder. That last point mattered because several
-> behaviours only became visible when CUE was parsed or evaluated.
-
-## 8:45–9:35 — Status and next steps
-
-**Presenter**
-
-> Eight improvements are merged and represented here. Four items remain open or
-> under review: structured literal values, computed regex patterns, generic
-> standard-library calls, and generated-CUE validation and evaluation helpers.
-> We'll keep prioritizing them based on which ones remove real escape hatches
-> from component work, rather than by issue number.
->
-> The playground pins a post-merge KubeVela revision, and the whole demo runs
-> offline after dependencies are downloaded. That makes the examples useful both
-> for this call and as regression-sized references for future DefKit users.
-
-## 9:35–10:00 — Close
-
-**Presenter**
-
-> The short version: we chose DefKit to make OAM definitions easier for a
-> Go-based platform team to maintain. Building and migrating real components
-> showed us several places where the typed API could support more component
-> patterns. We turned those opportunities into focused contributions. The merged
-> changes let DefKit express more, behave more predictably, and better support
-> multi-resource components.
->
-> Thanks to everyone who reviewed, implemented, and verified these changes.
-
-## Questions we are likely to get
-
-**Does DefKit replace CUE?**  
-No. DefKit is an authoring SDK. It generates CUE, and KubeVela continues to use
-CUE at runtime.
-
-**When do you still use raw CUE?**  
-Raw CUE remains a useful escape hatch for genuinely specialized cases. The
-contributed APIs bring recurring component patterns into the typed authoring
-model while preserving that flexibility.
-
-**Were all fixes written by the same team?**  
-No. We raised and verified the problem set, contributed several fixes, and other
-community members implemented others. This was a community effort.
-
-**Why is the demo offline instead of running on Kubernetes?**  
-These changes affect definition authoring, generated CUE, rendering, validation,
-and health-policy structure. Offline generation and dry-run exercise those
-boundaries directly. Installing fake CRDs and controllers would add setup but no
-useful evidence.
-
-**Are all twelve issues complete?**  
-No. Eight improvements are merged. Four remain open or under review and are
-still prioritized by concrete component needs and maintainer feedback.
+**What remains open?**
+Four areas remain open or under review: structured literal values, computed
+regex patterns, generic standard-library calls, and generated-CUE
+validation/evaluation helpers.

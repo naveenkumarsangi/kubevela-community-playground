@@ -73,6 +73,20 @@ The remaining four items are active roadmap work:
 | [#7286](https://github.com/kubevela/kubevela/issues/7286) | Generic CUE standard-library calls | Open |
 | [#7291](https://github.com/kubevela/kubevela/issues/7291) | Generated-CUE validation and evaluation | Open; [PR #7321](https://github.com/kubevela/kubevela/pull/7321) and [PR #7379](https://github.com/kubevela/kubevela/pull/7379) are under review |
 
+## Presentation browser flow
+
+The community-call script does not require slides. It starts in the browser with:
+
+1. the official [DefKit overview](https://kubevela.io/docs/platform-engineers/defkit/overview/);
+2. the [filtered twelve-issue list](https://github.com/kubevela/kubevela/issues?q=is%3Aissue%20author%3Akrishnankm%20Defkit%20in%3Atitle%20sort%3Acreated-asc);
+3. this README's complete merged and active status tables;
+4. [issue #7287](https://github.com/kubevela/kubevela/issues/7287) and merged [PR #7314](https://github.com/kubevela/kubevela/pull/7314); and
+5. [issue #7283](https://github.com/kubevela/kubevela/issues/7283) and merged [PR #7339](https://github.com/kubevela/kubevela/pull/7339).
+
+The presenter then switches once to the terminal demo. See
+[`PRESENTATION.md`](PRESENTATION.md) for the word-for-word script and
+[`PRESENTER-CHEAT-SHEET.md`](PRESENTER-CHEAT-SHEET.md) for the condensed cues.
+
 ## Quick start
 
 Requirements:
