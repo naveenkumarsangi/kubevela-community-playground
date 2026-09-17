@@ -1,6 +1,6 @@
 # DefKit community-call demo runbook
 
-The live section is designed for about four minutes. It uses offline generation
+The live section is designed for about five minutes. It uses offline generation
 and dry-run, so there is no cluster to prepare or debug during the call.
 
 ## Before the call
@@ -38,23 +38,23 @@ rm -rf generated
 go run ./cmd/generate generated
 ```
 
-Expected signal: six `.cue` files are written under `generated/component/`.
+Expected signal: seven `.cue` files are written under `generated/component/`.
 
 Say:
 
-> These definitions are authored as normal Go packages. DefKit turns them into
-> standard CUE ComponentDefinitions; nothing special is added to the KubeVela
-> runtime.
+> These seven examples cover eight merged capabilities. They are authored as
+> normal Go packages, and DefKit turns them into standard CUE
+> ComponentDefinitions without adding anything to the KubeVela runtime.
 
-Do not open all six files. The audience only needs to see that generation is one
+Do not open every file. The audience only needs to see that generation is one
 repeatable step.
 
-### 2. Show a useful collection transformation — 75 seconds
+### 2. Show typed collection authoring — 110 seconds
 
-Show the relevant Go builder:
+Show the structured-map parameter and map-to-list builder:
 
 ```bash
-bat --line-range 39:80 components/issue7288_file_share.go
+bat --line-range 27:78 components/issues7287_7288_file_share.go
 ```
 
 Then render the Application:
@@ -65,28 +65,35 @@ Then render the Application:
   -f examples/file-share.yaml
 ```
 
-Point to this part of the resource:
-
-```yaml
-spec:
-  mountPoints:
-  - name: cache
-    path: /cache
-    permissions: "0755"
-  - name: reports
-    path: /reports
-    permissions: "0750"
-```
+Point to the typed input in Go and the rendered `spec.mountPoints` list.
 
 Say:
 
-> Configuration is easier to maintain as a name-keyed map, while the target API
-> expects a list. The builder keeps both the key and value, and the generated
-> resource applies a default only where the input omitted one. This used to need
-> raw CUE or a less natural input shape.
+> `OfObject` describes the value under every dynamic map key with typed DefKit
+> fields, so the parameter no longer needs a raw schema string. The workload
+> expects a list, and the map-to-list builder keeps both the key and value while
+> applying a default permission. Together these APIs cover the full path from a
+> typed map-of-objects input to a list-shaped workload field.
 
 The order of map entries is not part of the contract. Do not describe `cache`
 as always appearing first.
+
+Then show the second newly merged map transform:
+
+```bash
+"${VELA_BIN:-vela}" dry-run --offline \
+  -d generated/component \
+  -f examples/route-catalog.yaml
+```
+
+Point to `spec.routes.checkout` and `spec.routes.search`.
+
+Say:
+
+> This case remains map-shaped, but each scalar input becomes a structured value
+> under its original key. `ForEachMap.WithBody` already represented that intent;
+> the generator now renders the body operations for every entry. These two
+> examples cover both common structured-map directions without raw CUE.
 
 ### 3. Show more useful validation feedback — 60 seconds
 
@@ -147,10 +154,10 @@ Say:
 
 Say:
 
-> These are three examples from six merged improvements. The others cover nested
-> item paths, an unhealthy result instead of an error when status is absent, and
-> a fluent negative-regex condition. They all use the same generate, vet, and
-> dry-run workflow.
+> This flow showed five of the eight merged capabilities. The repository also
+> covers nested item paths, an unhealthy result instead of an error when status
+> is absent, and a fluent negative-regex condition. Every example uses the same
+> generate, vet, and dry-run workflow.
 
 Hand back to the presenter for the contribution summary and close.
 
@@ -206,9 +213,11 @@ go run ./cmd/generate generated
 
 Do not spend the remaining presentation debugging. Show these verified signals:
 
-1. `file-share` renders a list with names retained from map keys;
-2. the invalid replica identifies `us-east-1` in its validation message; and
-3. `composite-store` renders one primary and three auxiliary resources.
+1. `file-share` uses a typed map schema and renders a list with names retained
+   from map keys;
+2. `route-catalog` renders a structured object under every original map key;
+3. the invalid replica identifies `us-east-1` in its validation message; and
+4. `composite-store` renders one primary and three auxiliary resources.
 
 Then continue with the contribution summary. The focus is the authoring process
 and the merged capabilities, not the terminal session itself.
