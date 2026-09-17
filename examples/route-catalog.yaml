@@ -1,0 +1,12 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: route-catalog-demo
+spec:
+  components:
+    - name: storefront-routes
+      type: route-catalog
+      properties:
+        routes:
+          checkout: checkout-api
+          search: search-api

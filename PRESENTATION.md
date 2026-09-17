@@ -11,8 +11,8 @@ We adopted DefKit to make OAM component authoring easier to maintain in Go. It
 worked for both new components and migrations from hand-written CUE. Real
 definitions highlighted opportunities to expand the typed builders; we turned
 those cases into reproducible upstream proposals, contributed several changes,
-and collaborated with other contributors on the rest. Six improvements are now
-merged.
+and collaborated with other contributors on the rest. Eight of the twelve
+improvements are now merged.
 
 ## 0:00–0:45 — Start with the goal, not the issue list
 
@@ -51,9 +51,9 @@ merged.
 > As we applied DefKit to more demanding components, several reusable extension
 > opportunities became clear.
 >
-> One was broader authoring expressiveness: nested writes inside generated list
-> items, turning a keyed map into a list without losing the key, and saying that
-> a value must not match a pattern.
+> One was broader authoring expressiveness: structured values under dynamic map
+> keys, transformations that retain both map keys and values, nested writes
+> inside generated items, and direct negative regex conditions.
 >
 > Another was richer feedback and lifecycle behaviour: validation messages could
 > identify the exact value being rejected, and a resource with no status yet
@@ -72,7 +72,7 @@ merged.
 
 **Presenter**
 
-> Six improvements from that effort are now merged. They make nested and
+> Eight improvements from that effort are now merged. They make structured and
 > collection-heavy templates easier to express, make validation feedback more
 > specific, and let health policies describe the whole component rather than only
 > its primary resource.
@@ -84,30 +84,38 @@ merged.
 
 **Handoff**
 
-> Instead of walking through six pull requests, we'll show one authoring flow and
-> three outcomes that users can see directly.
+> Instead of walking through eight pull requests, we'll show one authoring flow
+> and three outcomes that users can see directly.
 
 ## 3:40–7:40 — Demo
 
 Follow [`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md).
 
-### Demo beat 1: Go definitions become normal KubeVela definitions
+### Demo beat 1: typed collection authoring from schema to output
 
 **Demo partner**
 
 Generate the definitions.
 
-> These six definitions are ordinary Go packages using DefKit. Generating them
+> These seven definitions cover eight merged capabilities. Generating them
 > produces standard CUE ComponentDefinitions. There is no special runtime and no
 > cluster dependency in this demo.
 
-Show `components/issue7288_file_share.go`, then dry-run `file-share.yaml`.
+Show `components/issues7287_7288_file_share.go`, then dry-run `file-share.yaml`.
 
-> This component accepts mount points as a map because names make configuration
-> easier to manage. The target API wants a list. The merged map-to-list builder
-> keeps both the map key and value, so the rendered resource contains named list
-> entries and applies a default permission where the input omitted one. Before
-> this was added, this shape needed raw CUE or awkward restructuring.
+> The input is a dynamic-key map whose values have a typed object schema. The
+> merged `OfObject` API describes that shape without a raw schema string. The
+> target workload expects a list, so the map-to-list builder then retains both
+> the key and value, producing named entries and applying a default permission.
+> This is the complete path from typed input schema to rendered workload output.
+
+Dry-run `route-catalog.yaml`.
+
+> This second transform stays map-shaped but builds a structured value under
+> every original key. `ForEachMap.WithBody` already exposed that authoring API;
+> the merged generator support now renders and evaluates the body operations.
+> Together, these examples show that DefKit can model both common directions of
+> structured map transformation.
 
 ### Demo beat 2: validation identifies the actual bad value
 
@@ -156,9 +164,9 @@ Optional, if there is time:
 
 **Presenter**
 
-> Six improvements are merged and demonstrated here. Other items from the
-> original set remain open or under review, including broader structured-map
-> support, generated-CUE evaluation helpers, and generic standard-library calls.
+> Eight improvements are merged and represented here. Four items remain open or
+> under review: structured literal values, computed regex patterns, generic
+> standard-library calls, and generated-CUE validation and evaluation helpers.
 > We'll keep prioritizing them based on which ones remove real escape hatches
 > from component work, rather than by issue number.
 >
@@ -201,5 +209,5 @@ boundaries directly. Installing fake CRDs and controllers would add setup but no
 useful evidence.
 
 **Are all twelve issues complete?**  
-No. Six demonstrated improvements are merged. The remaining work is still
-prioritized by concrete component needs and maintainer feedback.
+No. Eight improvements are merged. Four remain open or under review and are
+still prioritized by concrete component needs and maintainer feedback.

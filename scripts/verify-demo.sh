@@ -30,6 +30,7 @@ done
 echo "Dry-running valid applications..."
 for application in \
   examples/queue-set.yaml \
+  examples/route-catalog.yaml \
   examples/managed-record.yaml \
   examples/file-share.yaml \
   examples/zone-replica.yaml \

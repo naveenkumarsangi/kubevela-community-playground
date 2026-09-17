@@ -2,7 +2,7 @@ module github.com/naveenkumarsangi/kubevela-community-playground
 
 go 1.23.8
 
-require github.com/oam-dev/kubevela v1.11.1-0.20260914083939-6ac1ea70d85c
+require github.com/oam-dev/kubevela v1.11.1-0.20260917092533-97d67561f080
 
 require (
 	cuelang.org/go v0.14.1 // indirect

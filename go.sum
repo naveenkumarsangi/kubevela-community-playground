@@ -130,6 +130,8 @@ github.com/oam-dev/cluster-gateway v1.9.2-0.20250629203450-2b04dd452b7a h1:DRcSD
 github.com/oam-dev/cluster-gateway v1.9.2-0.20250629203450-2b04dd452b7a/go.mod h1:ZIYRoiy4He22db8XiWTAh7QecIt5QWiQNacCZg1zbbY=
 github.com/oam-dev/kubevela v1.11.1-0.20260914083939-6ac1ea70d85c h1:z0W69/kiBShD20c4fZnFdZ93EE3WDdFQ6dpayoAdlrQ=
 github.com/oam-dev/kubevela v1.11.1-0.20260914083939-6ac1ea70d85c/go.mod h1:ooOcNZRrvtnAEsbzl79xb68shItLt+3qw5dcYGPoAxk=
+github.com/oam-dev/kubevela v1.11.1-0.20260917092533-97d67561f080 h1:QIztf0EDJ0WiVnPJw7xsZxIrsuEbkXHT4d//HAs9lyk=
+github.com/oam-dev/kubevela v1.11.1-0.20260917092533-97d67561f080/go.mod h1:ooOcNZRrvtnAEsbzl79xb68shItLt+3qw5dcYGPoAxk=
 github.com/oam-dev/terraform-controller v0.8.1-0.20250707044258-c0557127de25 h1:J5byd7UtaHZWDMcFA1VoMos+kbEpe3LcitWVmpcJmdI=
 github.com/oam-dev/terraform-controller v0.8.1-0.20250707044258-c0557127de25/go.mod h1:+QfZ/EBzdrGZcxGIt/I9OTDwq4kH/+aCD6Mh0yrrGr8=
 github.com/onsi/ginkgo v1.16.4 h1:29JGrr5oVBm5ulCWet69zQkzWipVXIol6ygQUe/EzNc=
